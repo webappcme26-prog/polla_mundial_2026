@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../core/flag_helper.dart';
 import '../services/admin_service.dart';
 import 'admin_match_predictions_page.dart';
 
@@ -37,6 +39,9 @@ class _AdminPageState extends State<AdminPage> {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: Text(
             'Resultado: ${match['equipo_local']} vs ${match['equipo_visitante']}',
           ),
@@ -76,7 +81,9 @@ class _AdminPageState extends State<AdminPage> {
                 if (golesLocal == null || golesVisitante == null) {
                   if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Ingresa números válidos')),
+                    const SnackBar(
+                      content: Text('Ingresa números válidos'),
+                    ),
                   );
                   return;
                 }
@@ -123,6 +130,108 @@ class _AdminPageState extends State<AdminPage> {
     return '$gl - $gv';
   }
 
+  Color _estadoColor(String estado) {
+    switch (estado) {
+      case 'finalizado':
+        return Colors.green;
+      case 'en_juego':
+        return Colors.orange;
+      default:
+        return Colors.blueGrey;
+    }
+  }
+
+  Widget _chip({
+    required String texto,
+    required MaterialColor color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: Text(
+        texto,
+        style: TextStyle(
+          color: color.shade700,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  String _textoFecha(dynamic fechaHora) {
+    if (fechaHora == null) return '';
+    final fecha = DateTime.parse(fechaHora.toString()).toLocal();
+
+    final d = fecha.day.toString().padLeft(2, '0');
+    final m = fecha.month.toString().padLeft(2, '0');
+    final y = fecha.year.toString();
+
+    final hour12 = fecha.hour % 12 == 0 ? 12 : fecha.hour % 12;
+    final min = fecha.minute.toString().padLeft(2, '0');
+    final ampm = fecha.hour >= 12 ? 'p. m.' : 'a. m.';
+
+    return '$d/$m/$y  $hour12:$min $ampm';
+  }
+
+  Widget _buildEquipo({
+    required String nombre,
+    required bool alineadoDerecha,
+  }) {
+    final bandera = FlagHelper.getFlagEmoji(nombre);
+
+    if (alineadoDerecha) {
+      return Expanded(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Expanded(
+              child: Text(
+                nombre,
+                textAlign: TextAlign.right,
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              bandera,
+              style: const TextStyle(fontSize: 24),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Expanded(
+      child: Row(
+        children: [
+          Text(
+            bandera,
+            style: const TextStyle(fontSize: 24),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              nombre,
+              style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -152,59 +261,163 @@ class _AdminPageState extends State<AdminPage> {
 
           return RefreshIndicator(
             onRefresh: _recargar,
-            child: ListView.builder(
-              itemCount: matches.length,
-              itemBuilder: (context, index) {
-                final match = matches[index];
-
-                return Card(
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${match['equipo_local']} vs ${match['equipo_visitante']}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text('Marcador real: ${_marcadorReal(match)}'),
-                        Text('Estado: ${match['estado']}'),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            ElevatedButton(
-                              onPressed: () => _mostrarDialogoResultado(match),
-                              child: const Text('Resultado'),
-                            ),
-                            const SizedBox(width: 10),
-                            OutlinedButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => AdminMatchPredictionsPage(
-                                      matchId: match['id'],
-                                      equipoLocal: match['equipo_local'],
-                                      equipoVisitante: match['equipo_visitante'],
-                                    ),
-                                  ),
-                                );
-                              },
-                              child: const Text('Pronósticos'),
-                            ),
-                          ],
-                        ),
-                      ],
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF0B3D91), Color(0xFF1D4ED8)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 12,
+                        offset: Offset(0, 6),
+                      ),
+                    ],
                   ),
-                );
-              },
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Administrador',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
+                      ),
+                      SizedBox(height: 6),
+                      Text(
+                        'Gestiona resultados y revisa pronósticos',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 18),
+                ...matches.map((match) {
+                  final estado = (match['estado'] ?? 'pendiente').toString();
+
+                  return Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              if (match['fase'] != null)
+                                _chip(
+                                  texto: '${match['fase']}',
+                                  color: Colors.blue,
+                                ),
+                              if (match['grupo'] != null)
+                                _chip(
+                                  texto: 'Grupo ${match['grupo']}',
+                                  color: Colors.orange,
+                                ),
+                              _chip(
+                                texto: estado.toUpperCase(),
+                                color: _estadoColor(estado),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          Row(
+                            children: [
+                              _buildEquipo(
+                                nombre: match['equipo_local'],
+                                alineadoDerecha: false,
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 8),
+                                child: Text(
+                                  'VS',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+                              _buildEquipo(
+                                nombre: match['equipo_visitante'],
+                                alineadoDerecha: true,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              const Icon(Icons.schedule, size: 18),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  _textoFecha(match['fecha_hora']),
+                                  style: const TextStyle(fontSize: 13),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              const Icon(Icons.scoreboard_outlined, size: 18),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Marcador real: ${_marcadorReal(match)}',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Wrap(
+                            spacing: 10,
+                            runSpacing: 10,
+                            children: [
+                              ElevatedButton.icon(
+                                onPressed: () => _mostrarDialogoResultado(match),
+                                icon: const Icon(Icons.edit_note_rounded),
+                                label: const Text('Resultado'),
+                              ),
+                              OutlinedButton.icon(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => AdminMatchPredictionsPage(
+                                        matchId: match['id'],
+                                        equipoLocal: match['equipo_local'],
+                                        equipoVisitante:
+                                            match['equipo_visitante'],
+                                      ),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.visibility_outlined),
+                                label: const Text('Pronósticos'),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              ],
             ),
           );
         },
