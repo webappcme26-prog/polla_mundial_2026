@@ -42,6 +42,26 @@ class _MyPredictionsPageState extends State<MyPredictionsPage> {
     }
   }
 
+  bool _acertoResultado(Map<String, dynamic> prediction) {
+    final match = prediction['matches'];
+
+    final glPred = prediction['goles_local_pred'];
+    final gvPred = prediction['goles_visitante_pred'];
+    final glReal = match['goles_local_real'];
+    final gvReal = match['goles_visitante_real'];
+
+    if (glReal == null || gvReal == null) return false;
+
+    final predDiff = glPred - gvPred;
+    final realDiff = glReal - gvReal;
+
+    if (predDiff == 0 && realDiff == 0) return true;
+    if (predDiff > 0 && realDiff > 0) return true;
+    if (predDiff < 0 && realDiff < 0) return true;
+
+    return false;
+  }
+
   Widget _buildEquipo({
     required String nombre,
     required bool alineadoDerecha,
@@ -222,15 +242,32 @@ class _MyPredictionsPageState extends State<MyPredictionsPage> {
           final predictions = snapshot.data ?? [];
 
           int proximos = 0;
-          int finalizados = 0;
+          int registrados = predictions.length;
+          int evaluados = 0;
+          int aciertos = 0;
+
           for (final p in predictions) {
-            final estado = (p['matches']?['estado'] ?? 'pendiente').toString();
-            if (estado == 'finalizado') {
-              finalizados++;
-            } else {
+            final match = p['matches'];
+            final estado = (match?['estado'] ?? 'pendiente').toString();
+
+            final glReal = match?['goles_local_real'];
+            final gvReal = match?['goles_visitante_real'];
+
+            if (estado != 'finalizado') {
               proximos++;
             }
+
+            if (glReal != null && gvReal != null) {
+              evaluados++;
+
+              if (_acertoResultado(p)) {
+                aciertos++;
+              }
+            }
           }
+
+          final int porcentajeAcierto =
+              evaluados == 0 ? 0 : ((aciertos / evaluados) * 100).round();
 
           return Container(
             decoration: const BoxDecoration(
@@ -300,7 +337,7 @@ class _MyPredictionsPageState extends State<MyPredictionsPage> {
                                 _statItem(
                                   Icons.fact_check,
                                   'Registrados',
-                                  '${predictions.length}',
+                                  '$registrados',
                                 ),
                                 Container(
                                   width: 1,
@@ -308,9 +345,9 @@ class _MyPredictionsPageState extends State<MyPredictionsPage> {
                                   color: Colors.white24,
                                 ),
                                 _statItem(
-                                  Icons.emoji_events,
-                                  'Finalizados',
-                                  '$finalizados',
+                                  Icons.star,
+                                  'Aciertos',
+                                  '$porcentajeAcierto%',
                                 ),
                               ],
                             ),
