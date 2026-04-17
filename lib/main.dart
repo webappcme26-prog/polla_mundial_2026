@@ -9,6 +9,7 @@ import 'pages/matches_page.dart';
 import 'pages/my_predictions_page.dart';
 import 'services/auth_service.dart';
 import 'services/profile_service.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,9 +38,19 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Polla Mundial 2026',
-      theme: ThemeData(
+  debugShowCheckedModeBanner: false,
+  title: 'Polla Mundial 2026',
+  locale: const Locale('es', 'CO'),
+  localizationsDelegates: const [
+    GlobalMaterialLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+  ],
+  supportedLocales: const [
+    Locale('es', 'CO'),
+    Locale('en', 'US'),
+  ],
+  theme: ThemeData(
         useMaterial3: true,
         scaffoldBackgroundColor: AppColors.background,
         colorScheme: ColorScheme.fromSeed(

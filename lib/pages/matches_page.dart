@@ -18,6 +18,7 @@ class _MatchesPageState extends State<MatchesPage> {
   final PredictionService _predictionService = PredictionService();
 
   late Future<List<Map<String, dynamic>>> _matchesFuture;
+  DateTime? _selectedDate;
 
   @override
   void initState() {
@@ -28,6 +29,14 @@ class _MatchesPageState extends State<MatchesPage> {
   String formatFecha(String fecha) {
     final date = DateTime.parse(fecha).toLocal();
     return DateFormat('dd/MM/yyyy hh:mm a').format(date);
+  }
+
+  String formatSoloFecha(DateTime fecha) {
+    return DateFormat('dd/MM/yyyy').format(fecha);
+  }
+
+  DateTime parseFechaLocal(String fecha) {
+    return DateTime.parse(fecha).toLocal();
   }
 
   bool _pronosticoAbierto(String fechaHora) {
@@ -148,6 +157,59 @@ class _MatchesPageState extends State<MatchesPage> {
     setState(() {
       _matchesFuture = _matchService.getMatches();
     });
+  }
+
+  Future<void> _seleccionarFecha(List<Map<String, dynamic>> matches) async {
+    if (matches.isEmpty) return;
+
+    final fechas = matches
+        .map((m) => parseFechaLocal(m['fecha_hora']))
+        .toList()
+      ..sort();
+
+    final primeraFecha = DateTime(
+      fechas.first.year,
+      fechas.first.month,
+      fechas.first.day,
+    );
+    final ultimaFecha = DateTime(
+      fechas.last.year,
+      fechas.last.month,
+      fechas.last.day,
+    );
+
+    final initialDate = _selectedDate ?? primeraFecha;
+
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate.isBefore(primeraFecha)
+          ? primeraFecha
+          : initialDate.isAfter(ultimaFecha)
+              ? ultimaFecha
+              : initialDate,
+      firstDate: primeraFecha,
+      lastDate: ultimaFecha,
+      locale: const Locale('es', 'CO'),
+    );
+
+    if (picked != null) {
+      setState(() {
+        _selectedDate = DateTime(picked.year, picked.month, picked.day);
+      });
+    }
+  }
+
+  List<Map<String, dynamic>> _filtrarPorFecha(
+    List<Map<String, dynamic>> matches,
+  ) {
+    if (_selectedDate == null) return matches;
+
+    return matches.where((match) {
+      final fecha = parseFechaLocal(match['fecha_hora']);
+      return fecha.year == _selectedDate!.year &&
+          fecha.month == _selectedDate!.month &&
+          fecha.day == _selectedDate!.day;
+    }).toList();
   }
 
   Widget _buildEquipo({
@@ -274,95 +336,147 @@ class _MatchesPageState extends State<MatchesPage> {
             );
           }
 
+          final filteredMatches = _filtrarPorFecha(matches);
+
           return RefreshIndicator(
             onRefresh: _recargarPartidos,
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: matches.length,
-              itemBuilder: (context, index) {
-                final match = matches[index];
-                final abierto = _pronosticoAbierto(match['fecha_hora']);
-
-                return Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (match['fase'] != null || match['grupo'] != null)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: [
-                                if (match['fase'] != null)
-                                  _infoChip(
-                                    texto: '${match['fase']}',
-                                    colorFondo: Colors.blue.withOpacity(0.10),
-                                    colorTexto: Colors.blue.shade800,
-                                  ),
-                                if (match['grupo'] != null)
-                                  _infoChip(
-                                    texto: 'Grupo ${match['grupo']}',
-                                    colorFondo: Colors.orange.withOpacity(0.10),
-                                    colorTexto: Colors.orange.shade800,
-                                  ),
-                              ],
-                            ),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => _seleccionarFecha(matches),
+                          icon: const Icon(Icons.calendar_month),
+                          label: Text(
+                            _selectedDate == null
+                                ? 'Seleccionar fecha'
+                                : formatSoloFecha(_selectedDate!),
                           ),
-                        Row(
-                          children: [
-                            _buildEquipo(
-                              nombre: match['equipo_local'],
-                              alineadoDerecha: false,
-                            ),
-                            const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 8),
-                              child: Text(
-                                'VS',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      if (_selectedDate != null)
+                        IconButton(
+                          onPressed: () {
+                            setState(() {
+                              _selectedDate = null;
+                            });
+                          },
+                          icon: const Icon(Icons.clear),
+                          tooltip: 'Quitar filtro',
+                        ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: filteredMatches.isEmpty
+                      ? const Center(
+                          child: Text('No hay partidos para esta fecha'),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          itemCount: filteredMatches.length,
+                          itemBuilder: (context, index) {
+                            final match = filteredMatches[index];
+                            final abierto =
+                                _pronosticoAbierto(match['fecha_hora']);
+
+                            return Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (match['fase'] != null ||
+                                        match['grupo'] != null)
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(bottom: 10),
+                                        child: Wrap(
+                                          spacing: 8,
+                                          runSpacing: 8,
+                                          children: [
+                                            if (match['fase'] != null)
+                                              _infoChip(
+                                                texto: '${match['fase']}',
+                                                colorFondo: Colors.blue
+                                                    .withOpacity(0.10),
+                                                colorTexto:
+                                                    Colors.blue.shade800,
+                                              ),
+                                            if (match['grupo'] != null)
+                                              _infoChip(
+                                                texto:
+                                                    'Grupo ${match['grupo']}',
+                                                colorFondo: Colors.orange
+                                                    .withOpacity(0.10),
+                                                colorTexto:
+                                                    Colors.orange.shade800,
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    Row(
+                                      children: [
+                                        _buildEquipo(
+                                          nombre: match['equipo_local'],
+                                          alineadoDerecha: false,
+                                        ),
+                                        const Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 8),
+                                          child: Text(
+                                            'VS',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        ),
+                                        _buildEquipo(
+                                          nombre: match['equipo_visitante'],
+                                          alineadoDerecha: true,
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 14),
+                                    Text(
+                                      'Fecha: ${formatFecha(match['fecha_hora'])}',
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    _estadoChip(abierto),
+                                    const SizedBox(height: 14),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: ElevatedButton.icon(
+                                        onPressed: abierto
+                                            ? () =>
+                                                _mostrarDialogoPronostico(match)
+                                            : null,
+                                        icon: const Icon(
+                                            Icons.edit_note_rounded),
+                                        label: Text(
+                                          abierto
+                                              ? 'Pronosticar / Editar'
+                                              : 'Pronóstico cerrado',
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ),
-                            _buildEquipo(
-                              nombre: match['equipo_visitante'],
-                              alineadoDerecha: true,
-                            ),
-                          ],
+                            );
+                          },
                         ),
-                        const SizedBox(height: 14),
-                        Text(
-                          'Fecha: ${formatFecha(match['fecha_hora'])}',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        _estadoChip(abierto),
-                        const SizedBox(height: 14),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: abierto
-                                ? () => _mostrarDialogoPronostico(match)
-                                : null,
-                            icon: const Icon(Icons.edit_note_rounded),
-                            label: Text(
-                              abierto
-                                  ? 'Pronosticar / Editar'
-                                  : 'Pronóstico cerrado',
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
+                ),
+              ],
             ),
           );
         },
