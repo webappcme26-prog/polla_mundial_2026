@@ -371,6 +371,20 @@ class _MatchesPageState extends State<MatchesPage> {
                     ],
                   ),
                 ),
+                  Padding(
+    padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+    child: Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        'Los horarios se muestran en tu hora local.',
+        style: TextStyle(
+          fontSize: 12,
+          color: Colors.grey.shade700,
+          fontStyle: FontStyle.italic,
+        ),
+      ),
+    ),
+  ),
                 Expanded(
                   child: filteredMatches.isEmpty
                       ? const Center(

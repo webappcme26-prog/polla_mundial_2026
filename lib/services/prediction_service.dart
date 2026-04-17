@@ -16,7 +16,6 @@ class PredictionService {
           'match_id': matchId,
           'goles_local_pred': golesLocal,
           'goles_visitante_pred': golesVisitante,
-          'updated_at': DateTime.now().toIso8601String(),
         },
         onConflict: 'user_id,match_id',
       );
