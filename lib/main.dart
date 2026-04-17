@@ -10,6 +10,7 @@ import 'pages/my_predictions_page.dart';
 import 'services/auth_service.dart';
 import 'services/profile_service.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'pages/reset_password_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -126,6 +127,7 @@ class MyApp extends StatelessWidget {
       home: const AuthGate(),
       routes: {
         '/home': (context) => const HomePage(),
+        '/reset-password': (context) => const ResetPasswordPage(),
       },
     );
   }

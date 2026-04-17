@@ -56,6 +56,20 @@ class AuthService {
     }
   }
 
+  Future<String?> resetPassword({
+    required String email,
+  }) async {
+    try {
+      await _supabase.auth.resetPasswordForEmail(
+        email,
+        redirectTo: 'https://polla-mundial-2026-blond.vercel.app/#/reset-password',
+      );
+      return null;
+    } catch (e) {
+      return e.toString();
+    }
+  }
+
   Future<void> logout() async {
     await _supabase.auth.signOut();
   }

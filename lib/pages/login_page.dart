@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'register_page.dart';
+import 'forgot_password_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -83,18 +84,35 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: _loading ? null : _login,
-                  child: _loading
-                      ? const CircularProgressIndicator()
-                      : const Text('Ingresar'),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _loading ? null : _login,
+                    child: _loading
+                        ? const CircularProgressIndicator()
+                        : const Text('Ingresar'),
+                  ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 TextButton(
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const RegisterPage()),
+                      MaterialPageRoute(
+                        builder: (_) => const ForgotPasswordPage(),
+                      ),
+                    );
+                  },
+                  child: const Text('¿Olvidaste tu contraseña?'),
+                ),
+                const SizedBox(height: 4),
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const RegisterPage(),
+                      ),
                     );
                   },
                   child: const Text('¿No tienes cuenta? Regístrate'),
