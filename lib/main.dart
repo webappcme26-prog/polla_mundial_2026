@@ -253,12 +253,20 @@ class _HomePageState extends State<HomePage> {
                           fontSize: 15,
                         ),
                       ),
-                      const SizedBox(height: 6),
                       Text(
-                        user?.email ?? 'Sin usuario',
+                        profile?['nombre'] ?? 'Sin nombre',
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 22,
+                         fontSize: 22,
+                         fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        user?.email ?? 'Sin Correo',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
