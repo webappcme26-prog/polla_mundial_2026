@@ -143,7 +143,7 @@ class _AdminPageState extends State<AdminPage> {
 
   Widget _chip({
     required String texto,
-    required MaterialColor color,
+    required Color color,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -154,7 +154,7 @@ class _AdminPageState extends State<AdminPage> {
       child: Text(
         texto,
         style: TextStyle(
-          color: color.shade700,
+          color: color,
           fontSize: 12,
           fontWeight: FontWeight.w600,
         ),
