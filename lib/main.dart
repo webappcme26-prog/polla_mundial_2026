@@ -133,13 +133,44 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class AuthGate extends StatelessWidget {
+class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
+
+  @override
+  State<AuthGate> createState() => _AuthGateState();
+}
+
+class _AuthGateState extends State<AuthGate> {
+  AuthChangeEvent? _lastEvent;
+
+  @override
+  void initState() {
+    super.initState();
+
+    Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      final event = data.event;
+
+      if (mounted) {
+        setState(() {
+          _lastEvent = event;
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final session = Supabase.instance.client.auth.currentSession;
-    return session != null ? const HomePage() : const LoginPage();
+
+    if (_lastEvent == AuthChangeEvent.passwordRecovery) {
+      return const ResetPasswordPage();
+    }
+
+    if (session != null) {
+      return const HomePage();
+    }
+
+    return const LoginPage();
   }
 }
 

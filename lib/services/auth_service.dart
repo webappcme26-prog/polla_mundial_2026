@@ -62,7 +62,7 @@ class AuthService {
     try {
       await _supabase.auth.resetPasswordForEmail(
         email,
-        redirectTo: 'https://polla-mundial-2026-blond.vercel.app/#/reset-password',
+        redirectTo: 'https://polla-mundial-2026-blond.vercel.app/',
       );
       return null;
     } catch (e) {
