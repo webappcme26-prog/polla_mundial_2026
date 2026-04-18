@@ -326,7 +326,7 @@ class _MyPredictionsPageState extends State<MyPredictionsPage> {
                               children: [
                                 _statItem(
                                   Icons.calendar_month,
-                                  'Partidos Sin Finalizar',
+                                  'Por Terminar',
                                   '$proximos',
                                 ),
                                 Container(
