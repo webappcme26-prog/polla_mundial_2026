@@ -201,10 +201,69 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text('Polla Mundial 2026'),
         actions: [
-          IconButton(
-            tooltip: 'Cerrar sesión',
-            onPressed: _cerrarSesion,
-            icon: const Icon(Icons.logout_rounded),
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(20),
+              onTap: _cerrarSesion,
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0xFFFFD54F),
+                      Color(0xFFFFB300),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.22),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(18),
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color(0xFFFF3B30),
+                        Color(0xFFD50000),
+                        Color(0xFFB71C1C),
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.logout_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      SizedBox(width: 6),
+                      Text(
+                        'SALIR',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -244,11 +303,14 @@ class _HomePageState extends State<HomePage> {
                       _menuButton(
                         icon: Icons.sports_soccer_rounded,
                         title: 'Ver partidos',
-                        subtitle: 'Consulta el calendario y registra tus pronósticos',
+                        subtitle:
+                            'Consulta el calendario y registra tus pronósticos',
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const MatchesPage()),
+                            MaterialPageRoute(
+                              builder: (_) => const MatchesPage(),
+                            ),
                           );
                         },
                       ),
@@ -289,7 +351,9 @@ class _HomePageState extends State<HomePage> {
                           onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => const AdminPage()),
+                              MaterialPageRoute(
+                                builder: (_) => const AdminPage(),
+                              ),
                             );
                           },
                         ),
