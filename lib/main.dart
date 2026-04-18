@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/supabase_config.dart';
 import 'pages/admin_page.dart';
@@ -27,10 +27,11 @@ class AppColors {
   static const Color primary = Color(0xFF0B3D91);
   static const Color secondary = Color(0xFF16A34A);
   static const Color accent = Color(0xFFD4AF37);
-  static const Color background = Color(0xFFF5F7FB);
+  static const Color background = Color(0xFFF4F6FB);
   static const Color card = Colors.white;
   static const Color textDark = Color(0xFF1F2937);
   static const Color textSoft = Color(0xFF6B7280);
+  static const Color chipBg = Color(0xFFE8EEFF);
 }
 
 class MyApp extends StatelessWidget {
@@ -61,20 +62,20 @@ class MyApp extends StatelessWidget {
           brightness: Brightness.light,
         ),
         appBarTheme: const AppBarTheme(
-          centerTitle: false,
           backgroundColor: Colors.transparent,
           foregroundColor: Colors.white,
           elevation: 0,
+          centerTitle: false,
           surfaceTintColor: Colors.transparent,
           titleTextStyle: TextStyle(
             color: Colors.white,
             fontSize: 24,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w800,
           ),
         ),
         cardTheme: CardThemeData(
-          color: AppColors.card,
-          elevation: 4,
+          color: Colors.white.withOpacity(0.94),
+          elevation: 6,
           shadowColor: Colors.black12,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(24),
@@ -92,7 +93,7 @@ class MyApp extends StatelessWidget {
             ),
             textStyle: const TextStyle(
               fontSize: 15,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),
@@ -180,6 +181,17 @@ class _HomePageState extends State<HomePage> {
     _profileFuture = _profileService.getMyProfile();
   }
 
+  Future<void> _cerrarSesion() async {
+    await _authService.logout();
+    if (!mounted) return;
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = _authService.currentUser;
@@ -190,15 +202,8 @@ class _HomePageState extends State<HomePage> {
         title: const Text('Polla Mundial 2026'),
         actions: [
           IconButton(
-            onPressed: () async {
-              await _authService.logout();
-              if (!context.mounted) return;
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => const LoginPage()),
-                (route) => false,
-              );
-            },
+            tooltip: 'Cerrar sesión',
+            onPressed: _cerrarSesion,
             icon: const Icon(Icons.logout_rounded),
           ),
         ],
@@ -217,92 +222,29 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             child: Container(
-              color: Colors.black.withOpacity(0.35),
+              color: Colors.black.withOpacity(0.36),
               child: SafeArea(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    setState(() {
+                      _profileFuture = _profileService.getMyProfile();
+                    });
+                  },
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
                     children: [
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(22),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              const Color(0xFF0B3D91).withOpacity(0.95),
-                              const Color(0xFF1D4ED8).withOpacity(0.92),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(28),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black26,
-                              blurRadius: 14,
-                              offset: Offset(0, 6),
-                            ),
-                          ],
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.12),
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Bienvenido',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 15,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              profile?['nombre'] ?? 'Sin nombre',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 28,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              user?.email ?? 'Sin correo',
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 14),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 7,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.16),
-                                borderRadius: BorderRadius.circular(50),
-                              ),
-                              child: Text(
-                                'Rol: ${profile?['rol'] ?? 'jugador'}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                      _buildHeroCard(
+                        nombre: profile?['nombre'] ?? 'Sin nombre',
+                        email: user?.email ?? 'Sin correo',
+                        rol: profile?['rol'] ?? 'jugador',
                       ),
-                      const SizedBox(height: 26),
+                      const SizedBox(height: 22),
+                      _buildSectionTitle(),
+                      const SizedBox(height: 14),
                       _menuButton(
-                        context,
                         icon: Icons.sports_soccer_rounded,
                         title: 'Ver partidos',
-                        subtitle: 'Consulta el calendario y pronostica',
+                        subtitle: 'Consulta el calendario y registra tus pronósticos',
                         onTap: () {
                           Navigator.push(
                             context,
@@ -310,12 +252,11 @@ class _HomePageState extends State<HomePage> {
                           );
                         },
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 14),
                       _menuButton(
-                        context,
                         icon: Icons.fact_check_rounded,
                         title: 'Mis pronósticos',
-                        subtitle: 'Revisa lo que ya registraste',
+                        subtitle: 'Revisa tus marcadores y aciertos',
                         onTap: () {
                           Navigator.push(
                             context,
@@ -325,12 +266,11 @@ class _HomePageState extends State<HomePage> {
                           );
                         },
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 14),
                       _menuButton(
-                        context,
                         icon: Icons.emoji_events_rounded,
                         title: 'Tabla de posiciones',
-                        subtitle: 'Mira cómo va el ranking',
+                        subtitle: 'Mira cómo va el ranking general',
                         onTap: () {
                           Navigator.push(
                             context,
@@ -341,12 +281,11 @@ class _HomePageState extends State<HomePage> {
                         },
                       ),
                       if (esAdmin) ...[
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 14),
                         _menuButton(
-                          context,
                           icon: Icons.admin_panel_settings_rounded,
                           title: 'Panel admin',
-                          subtitle: 'Gestiona resultados y pronósticos',
+                          subtitle: 'Gestiona resultados y revisa pronósticos',
                           onTap: () {
                             Navigator.push(
                               context,
@@ -355,6 +294,8 @@ class _HomePageState extends State<HomePage> {
                           },
                         ),
                       ],
+                      const SizedBox(height: 18),
+                      _buildInfoBanner(),
                     ],
                   ),
                 ),
@@ -366,8 +307,122 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _menuButton(
-    BuildContext context, {
+  Widget _buildHeroCard({
+    required String nombre,
+    required String email,
+    required String rol,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFF0B3D91).withOpacity(0.96),
+            const Color(0xFF1D4ED8).withOpacity(0.92),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.12),
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 14,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.14),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.person_rounded,
+              color: Colors.white,
+              size: 34,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Bienvenido',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  nombre,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  email,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.16),
+                    borderRadius: BorderRadius.circular(50),
+                  ),
+                  child: Text(
+                    'Rol: $rol',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle() {
+    return const Padding(
+      padding: EdgeInsets.only(left: 2),
+      child: Text(
+        'Accesos rápidos',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+
+  Widget _menuButton({
     required IconData icon,
     required String title,
     required String subtitle,
@@ -441,6 +496,43 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildInfoBanner() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.88),
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: AppColors.chipBg,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(
+              Icons.access_time_rounded,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Text(
+              'Los horarios se muestran en tu hora local y los cierres se validan con la hora del servidor.',
+              style: TextStyle(
+                color: AppColors.textDark,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
