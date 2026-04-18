@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'core/supabase_config.dart';
 import 'pages/admin_page.dart';
@@ -7,10 +8,9 @@ import 'pages/leaderboard_page.dart';
 import 'pages/login_page.dart';
 import 'pages/matches_page.dart';
 import 'pages/my_predictions_page.dart';
+import 'pages/reset_password_page.dart';
 import 'services/auth_service.dart';
 import 'services/profile_service.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'pages/reset_password_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,19 +39,19 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-  debugShowCheckedModeBanner: false,
-  title: 'Polla Mundial 2026',
-  locale: const Locale('es', 'CO'),
-  localizationsDelegates: const [
-    GlobalMaterialLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-  ],
-  supportedLocales: const [
-    Locale('es', 'CO'),
-    Locale('en', 'US'),
-  ],
-  theme: ThemeData(
+      debugShowCheckedModeBanner: false,
+      title: 'Polla Mundial 2026',
+      locale: const Locale('es', 'CO'),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('es', 'CO'),
+        Locale('en', 'US'),
+      ],
+      theme: ThemeData(
         useMaterial3: true,
         scaffoldBackgroundColor: AppColors.background,
         colorScheme: ColorScheme.fromSeed(
@@ -62,24 +62,24 @@ class MyApp extends StatelessWidget {
         ),
         appBarTheme: const AppBarTheme(
           centerTitle: false,
-          backgroundColor: AppColors.background,
-          foregroundColor: AppColors.textDark,
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
           elevation: 0,
           surfaceTintColor: Colors.transparent,
           titleTextStyle: TextStyle(
-            color: AppColors.textDark,
+            color: Colors.white,
             fontSize: 24,
             fontWeight: FontWeight.w700,
           ),
         ),
         cardTheme: CardThemeData(
           color: AppColors.card,
-          elevation: 2,
+          elevation: 4,
           shadowColor: Colors.black12,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(24),
           ),
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          margin: EdgeInsets.zero,
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
@@ -93,16 +93,6 @@ class MyApp extends StatelessWidget {
             textStyle: const TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-        outlinedButtonTheme: OutlinedButtonThemeData(
-          style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.primary,
-            side: const BorderSide(color: AppColors.primary, width: 1.2),
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
             ),
           ),
         ),
@@ -148,13 +138,10 @@ class _AuthGateState extends State<AuthGate> {
     super.initState();
 
     Supabase.instance.client.auth.onAuthStateChange.listen((data) {
-      final event = data.event;
-
-      if (mounted) {
-        setState(() {
-          _lastEvent = event;
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        _lastEvent = data.event;
+      });
     });
   }
 
@@ -198,6 +185,7 @@ class _HomePageState extends State<HomePage> {
     final user = _authService.currentUser;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text('Polla Mundial 2026'),
         actions: [
@@ -221,131 +209,156 @@ class _HomePageState extends State<HomePage> {
           final profile = snapshot.data;
           final esAdmin = profile != null && profile['rol'] == 'admin';
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(22),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [AppColors.primary, Color(0xFF1D4ED8)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 12,
-                        offset: Offset(0, 6),
-                      ),
-                    ],
-                  ),
+          return Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/fondo_mundial.png'),
+                fit: BoxFit.cover,
+              ),
+            ),
+            child: Container(
+              color: Colors.black.withOpacity(0.35),
+              child: SafeArea(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Bienvenido',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 15,
-                        ),
-                      ),
-                      Text(
-                        profile?['nombre'] ?? 'Sin nombre',
-                        style: const TextStyle(
-                          color: Colors.white,
-                         fontSize: 22,
-                         fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        user?.email ?? 'Sin Correo',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(22),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(50),
-                        ),
-                        child: Text(
-                          'Rol: ${profile?['rol'] ?? 'jugador'}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
+                          gradient: LinearGradient(
+                            colors: [
+                              const Color(0xFF0B3D91).withOpacity(0.95),
+                              const Color(0xFF1D4ED8).withOpacity(0.92),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(28),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 14,
+                              offset: Offset(0, 6),
+                            ),
+                          ],
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.12),
                           ),
                         ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Bienvenido',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 15,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              profile?['nombre'] ?? 'Sin nombre',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 28,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              user?.email ?? 'Sin correo',
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 7,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.16),
+                                borderRadius: BorderRadius.circular(50),
+                              ),
+                              child: Text(
+                                'Rol: ${profile?['rol'] ?? 'jugador'}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
+                      const SizedBox(height: 26),
+                      _menuButton(
+                        context,
+                        icon: Icons.sports_soccer_rounded,
+                        title: 'Ver partidos',
+                        subtitle: 'Consulta el calendario y pronostica',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const MatchesPage()),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      _menuButton(
+                        context,
+                        icon: Icons.fact_check_rounded,
+                        title: 'Mis pronósticos',
+                        subtitle: 'Revisa lo que ya registraste',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const MyPredictionsPage(),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      _menuButton(
+                        context,
+                        icon: Icons.emoji_events_rounded,
+                        title: 'Tabla de posiciones',
+                        subtitle: 'Mira cómo va el ranking',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const LeaderboardPage(),
+                            ),
+                          );
+                        },
+                      ),
+                      if (esAdmin) ...[
+                        const SizedBox(height: 16),
+                        _menuButton(
+                          context,
+                          icon: Icons.admin_panel_settings_rounded,
+                          title: 'Panel admin',
+                          subtitle: 'Gestiona resultados y pronósticos',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const AdminPage()),
+                            );
+                          },
+                        ),
+                      ],
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
-                _menuButton(
-                  context,
-                  icon: Icons.sports_soccer_rounded,
-                  title: 'Ver partidos',
-                  subtitle: 'Consulta el calendario y pronostica',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const MatchesPage()),
-                    );
-                  },
-                ),
-                _menuButton(
-                  context,
-                  icon: Icons.fact_check_rounded,
-                  title: 'Mis pronósticos',
-                  subtitle: 'Revisa lo que ya registraste',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const MyPredictionsPage(),
-                      ),
-                    );
-                  },
-                ),
-                _menuButton(
-                  context,
-                  icon: Icons.emoji_events_rounded,
-                  title: 'Tabla de posiciones',
-                  subtitle: 'Mira cómo va el ranking',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const LeaderboardPage(),
-                      ),
-                    );
-                  },
-                ),
-                if (esAdmin)
-                  _menuButton(
-                    context,
-                    icon: Icons.admin_panel_settings_rounded,
-                    title: 'Panel admin',
-                    subtitle: 'Gestiona resultados y pronósticos',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const AdminPage()),
-                      );
-                    },
-                  ),
-              ],
+              ),
             ),
           );
         },
@@ -360,49 +373,72 @@ class _HomePageState extends State<HomePage> {
     required String subtitle,
     required VoidCallback onTap,
   }) {
-    return Card(
+    return Material(
+      color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(26),
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Row(
-            children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(icon, color: AppColors.primary),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.94),
+            borderRadius: BorderRadius.circular(26),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 12,
+                offset: Offset(0, 5),
               ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        color: AppColors.textDark,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: const TextStyle(
-                        color: AppColors.textSoft,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(Icons.arrow_forward_ios_rounded, size: 18),
             ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Row(
+              children: [
+                Container(
+                  width: 58,
+                  height: 58,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.10),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: AppColors.primary,
+                    size: 30,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          color: AppColors.textDark,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          color: AppColors.textSoft,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 20,
+                  color: AppColors.textDark,
+                ),
+              ],
+            ),
           ),
         ),
       ),
