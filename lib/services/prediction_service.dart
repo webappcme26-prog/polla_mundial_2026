@@ -56,7 +56,9 @@ class PredictionService {
             equipo_local,
             equipo_visitante,
             fecha_hora,
-            estado
+            estado,
+            goles_local_real,
+            goles_visitante_real
           )
         ''')
         .eq('user_id', userId)
