@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -74,7 +75,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
         cardTheme: CardThemeData(
-          color: Colors.white.withOpacity(0.94),
+          color: Colors.white,
           elevation: 6,
           shadowColor: Colors.black12,
           shape: RoundedRectangleBorder(
@@ -174,11 +175,27 @@ class _HomePageState extends State<HomePage> {
   final ProfileService _profileService = ProfileService();
 
   late Future<Map<String, dynamic>?> _profileFuture;
+  Timer? _clockTimer;
+  DateTime _currentTime = DateTime.now();
 
   @override
   void initState() {
     super.initState();
     _profileFuture = _profileService.getMyProfile();
+
+    _currentTime = DateTime.now();
+    _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      setState(() {
+        _currentTime = DateTime.now();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _clockTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _cerrarSesion() async {
@@ -190,6 +207,18 @@ class _HomePageState extends State<HomePage> {
       MaterialPageRoute(builder: (_) => const LoginPage()),
       (route) => false,
     );
+  }
+
+  String _formatCurrentTime() {
+    final hour = _currentTime.hour % 12 == 0 ? 12 : _currentTime.hour % 12;
+    final minute = _currentTime.minute.toString().padLeft(2, '0');
+    final second = _currentTime.second.toString().padLeft(2, '0');
+    final ampm = _currentTime.hour >= 12 ? 'p. m.' : 'a. m.';
+    final day = _currentTime.day.toString().padLeft(2, '0');
+    final month = _currentTime.month.toString().padLeft(2, '0');
+    final year = _currentTime.year;
+
+    return '$day/$month/$year  $hour:$minute:$second $ampm';
   }
 
   @override
@@ -586,14 +615,28 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(width: 12),
-          const Expanded(
-            child: Text(
-              'Los horarios se muestran en tu hora local y los cierres se validan con la hora del servidor.',
-              style: TextStyle(
-                color: AppColors.textDark,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Hora actual',
+                  style: TextStyle(
+                    color: AppColors.textSoft,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  _formatCurrentTime(),
+                  style: const TextStyle(
+                    color: AppColors.textDark,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
