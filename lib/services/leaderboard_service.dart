@@ -6,7 +6,13 @@ class LeaderboardService {
   Future<List<Map<String, dynamic>>> getLeaderboard() async {
     final response = await _supabase
         .from('leaderboard')
-        .select()
+        .select('''
+          user_id,
+          nombre,
+          puntos_totales,
+          exactos,
+          aciertos_resultado
+        ''')
         .order('puntos_totales', ascending: false)
         .order('exactos', ascending: false)
         .order('aciertos_resultado', ascending: false)

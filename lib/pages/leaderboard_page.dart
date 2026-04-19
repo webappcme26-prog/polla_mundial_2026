@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/leaderboard_service.dart';
 
 class LeaderboardPage extends StatefulWidget {
@@ -11,6 +12,7 @@ class LeaderboardPage extends StatefulWidget {
 class _LeaderboardPageState extends State<LeaderboardPage> {
   final LeaderboardService _leaderboardService = LeaderboardService();
   late Future<List<Map<String, dynamic>>> _leaderboardFuture;
+  final String? _currentUserId = Supabase.instance.client.auth.currentUser?.id;
 
   @override
   void initState() {
@@ -105,13 +107,15 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     );
   }
 
-  Widget _puntosBox(dynamic puntos) {
+  Widget _puntosBox(dynamic puntos, {bool destacar = false}) {
     return Container(
       width: 74,
       padding: const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF0B3D91), Color(0xFF1D4ED8)],
+        gradient: LinearGradient(
+          colors: destacar
+              ? const [Color(0xFFD4AF37), Color(0xFFFFC107)]
+              : const [Color(0xFF0B3D91), Color(0xFF1D4ED8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -119,10 +123,10 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
       ),
       child: Column(
         children: [
-          const Text(
+          Text(
             'Puntos',
             style: TextStyle(
-              color: Colors.white70,
+              color: destacar ? Colors.black87 : Colors.white70,
               fontSize: 11,
               fontWeight: FontWeight.w600,
             ),
@@ -130,8 +134,8 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           const SizedBox(height: 3),
           Text(
             '$puntos',
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: destacar ? Colors.black87 : Colors.white,
               fontSize: 20,
               fontWeight: FontWeight.w800,
             ),
@@ -239,11 +243,21 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                         final index = entry.key;
                         final jugador = entry.value;
                         final posicion = index + 1;
+                        final esUsuarioActual =
+                            jugador['user_id'] == _currentUserId;
 
                         return Card(
-                          color: Colors.white.withOpacity(0.95),
+                          color: esUsuarioActual
+                              ? const Color(0xFFFFF8E1)
+                              : Colors.white.withOpacity(0.95),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(24),
+                            side: esUsuarioActual
+                                ? const BorderSide(
+                                    color: Color(0xFFFFC107),
+                                    width: 1.4,
+                                  )
+                                : BorderSide.none,
                           ),
                           margin: const EdgeInsets.only(bottom: 14),
                           child: Padding(
@@ -260,11 +274,36 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                     children: [
                                       Text(
                                         jugador['nombre'] ?? 'Sin nombre',
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 17,
                                           fontWeight: FontWeight.w800,
+                                          color: esUsuarioActual
+                                              ? const Color(0xFF8A5A00)
+                                              : null,
                                         ),
                                       ),
+                                      const SizedBox(height: 6),
+                                      if (esUsuarioActual)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 5,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFFFD54F)
+                                                .withOpacity(0.25),
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                          ),
+                                          child: const Text(
+                                            'Tú',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w700,
+                                              color: Color(0xFF8A5A00),
+                                            ),
+                                          ),
+                                        ),
                                       const SizedBox(height: 10),
                                       Wrap(
                                         spacing: 8,
@@ -288,7 +327,10 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                   ),
                                 ),
                                 const SizedBox(width: 12),
-                                _puntosBox(jugador['puntos_totales'] ?? 0),
+                                _puntosBox(
+                                  jugador['puntos_totales'] ?? 0,
+                                  destacar: esUsuarioActual,
+                                ),
                               ],
                             ),
                           ),

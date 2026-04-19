@@ -287,6 +287,45 @@ class _MatchesPageState extends State<MatchesPage> {
     );
   }
 
+  Widget _resultadoOficialChip(Map<String, dynamic> match) {
+    final gl = match['goles_local_real'];
+    final gv = match['goles_visitante_real'];
+
+    if (gl == null || gv == null) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.grey.withOpacity(0.10),
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: const Text(
+          'Sin resultado oficial',
+          style: TextStyle(
+            color: Colors.black54,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.green.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: Text(
+        'Resultado oficial: $gl - $gv',
+        style: TextStyle(
+          color: Colors.green.shade800,
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+
   Widget _infoChip({
     required String texto,
     required Color colorFondo,
@@ -511,7 +550,14 @@ class _MatchesPageState extends State<MatchesPage> {
                                             ),
                                           ),
                                           const SizedBox(height: 8),
-                                          _estadoChip(abierto),
+                                          Wrap(
+                                            spacing: 8,
+                                            runSpacing: 8,
+                                            children: [
+                                              _estadoChip(abierto),
+                                              _resultadoOficialChip(match),
+                                            ],
+                                          ),
                                           const SizedBox(height: 14),
                                           SizedBox(
                                             width: double.infinity,
