@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/flag_helper.dart';
 import '../services/admin_service.dart';
+import '../services/backup_service.dart';
 import 'admin_match_predictions_page.dart';
 
 class AdminPage extends StatefulWidget {
@@ -13,6 +14,7 @@ class AdminPage extends StatefulWidget {
 
 class _AdminPageState extends State<AdminPage> {
   final AdminService _adminService = AdminService();
+  final BackupService _backupService = BackupService();
   late Future<List<Map<String, dynamic>>> _matchesFuture;
 
   @override
@@ -25,6 +27,26 @@ class _AdminPageState extends State<AdminPage> {
     setState(() {
       _matchesFuture = _adminService.getMatches();
     });
+  }
+
+  Future<void> _generarRespaldoDiario() async {
+    try {
+      await _backupService.downloadDailyBackupPdf();
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Respaldo diario generado correctamente'),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al generar respaldo: $e'),
+        ),
+      );
+    }
   }
 
   Future<void> _mostrarDialogoResultado(Map<String, dynamic> match) async {
@@ -281,24 +303,30 @@ class _AdminPageState extends State<AdminPage> {
                       ),
                     ],
                   ),
-                  child: const Column(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         'Administrador',
                         style: TextStyle(
                           color: Colors.white70,
                           fontSize: 14,
                         ),
                       ),
-                      SizedBox(height: 6),
-                      Text(
+                      const SizedBox(height: 6),
+                      const Text(
                         'Gestiona resultados y revisa pronósticos',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
                         ),
+                      ),
+                      const SizedBox(height: 14),
+                      ElevatedButton.icon(
+                        onPressed: _generarRespaldoDiario,
+                        icon: const Icon(Icons.picture_as_pdf_rounded),
+                        label: const Text('Respaldo del día'),
                       ),
                     ],
                   ),
