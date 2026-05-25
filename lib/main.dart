@@ -329,50 +329,7 @@ class _HomePageState extends State<HomePage> {
                       const SizedBox(height: 22),
                       _buildSectionTitle(),
                       const SizedBox(height: 14),
-                      _menuButton(
-                        icon: Icons.sports_soccer_rounded,
-                        title: 'Ver partidos',
-                        subtitle:
-                            'Consulta el calendario y registra tus pronósticos',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const MatchesPage(),
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 14),
-                      _menuButton(
-                        icon: Icons.fact_check_rounded,
-                        title: 'Mis pronósticos',
-                        subtitle: 'Revisa tus marcadores y aciertos',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const MyPredictionsPage(),
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 14),
-                      _menuButton(
-                        icon: Icons.emoji_events_rounded,
-                        title: 'Tabla de posiciones',
-                        subtitle: 'Mira cómo va el ranking general',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const LeaderboardPage(),
-                            ),
-                          );
-                        },
-                      ),
                       if (esAdmin) ...[
-                        const SizedBox(height: 14),
                         _menuButton(
                           icon: Icons.admin_panel_settings_rounded,
                           title: 'Panel admin',
@@ -382,6 +339,63 @@ class _HomePageState extends State<HomePage> {
                               context,
                               MaterialPageRoute(
                                 builder: (_) => const AdminPage(),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 14),
+                        _menuButton(
+                          icon: Icons.emoji_events_rounded,
+                          title: 'Tabla de posiciones',
+                          subtitle: 'Mira cómo va el ranking general',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const LeaderboardPage(),
+                              ),
+                            );
+                          },
+                        ),
+                      ] else ...[
+                        _menuButton(
+                          icon: Icons.sports_soccer_rounded,
+                          title: 'Ver partidos',
+                          subtitle:
+                              'Consulta el calendario y registra tus pronósticos',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const MatchesPage(),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 14),
+                        _menuButton(
+                          icon: Icons.fact_check_rounded,
+                          title: 'Mis pronósticos',
+                          subtitle: 'Revisa tus marcadores y aciertos',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const MyPredictionsPage(),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 14),
+                        _menuButton(
+                          icon: Icons.emoji_events_rounded,
+                          title: 'Tabla de posiciones',
+                          subtitle: 'Mira cómo va el ranking general',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const LeaderboardPage(),
                               ),
                             );
                           },
