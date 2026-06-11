@@ -82,7 +82,11 @@ class BackupService {
 
     final pdf = pw.Document();
 
-    final leaderboard = await getLeaderboardData();
+    final leaderboardRaw = await getLeaderboardData();
+
+    final leaderboard = leaderboardRaw
+    .where((user) => user['nombre'] != 'Administrador')
+    .toList();
     final matches = await getMatchesWithPredictions();
 
     final now = DateTime.now();
