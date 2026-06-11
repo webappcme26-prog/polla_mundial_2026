@@ -62,6 +62,20 @@ class _MyPredictionsPageState extends State<MyPredictionsPage> {
     return false;
   }
 
+  bool _acertoExacto(Map<String, dynamic> prediction) {
+  final match = prediction['matches'];
+
+  final glPred = prediction['goles_local_pred'];
+  final gvPred = prediction['goles_visitante_pred'];
+
+  final glReal = match['goles_local_real'];
+  final gvReal = match['goles_visitante_real'];
+
+  if (glReal == null || gvReal == null) return false;
+
+  return glPred == glReal && gvPred == gvReal;
+}
+
   Widget _buildEquipo({
     required String nombre,
     required bool alineadoDerecha,
@@ -244,30 +258,33 @@ class _MyPredictionsPageState extends State<MyPredictionsPage> {
           int proximos = 0;
           int registrados = predictions.length;
           int evaluados = 0;
-          int aciertos = 0;
+          double puntosPorcentaje = 0;
 
-          for (final p in predictions) {
-            final match = p['matches'];
-            final estado = (match?['estado'] ?? 'pendiente').toString();
+for (final p in predictions) {
+  final match = p['matches'];
+  final estado = (match?['estado'] ?? 'pendiente').toString();
 
-            final glReal = match?['goles_local_real'];
-            final gvReal = match?['goles_visitante_real'];
+  final glReal = match?['goles_local_real'];
+  final gvReal = match?['goles_visitante_real'];
 
-            if (estado != 'finalizado') {
-              proximos++;
-            }
+  if (estado != 'finalizado') {
+    proximos++;
+  }
 
-            if (glReal != null && gvReal != null) {
-              evaluados++;
+  if (glReal != null && gvReal != null) {
+    evaluados++;
 
-              if (_acertoResultado(p)) {
-                aciertos++;
-              }
-            }
-          }
+    if (_acertoExacto(p)) {
+      puntosPorcentaje += 100;
+    } else if (_acertoResultado(p)) {
+      puntosPorcentaje += 50;
+    }
+  }
+}
 
-          final int porcentajeAcierto =
-              evaluados == 0 ? 0 : ((aciertos / evaluados) * 100).round();
+final int porcentajeAcierto = evaluados == 0
+    ? 0
+    : (puntosPorcentaje / evaluados).round();
 
           return Container(
             decoration: const BoxDecoration(
