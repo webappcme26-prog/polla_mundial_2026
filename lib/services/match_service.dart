@@ -7,6 +7,7 @@ class MatchService {
     final response = await _supabase
         .from('matches')
         .select()
+        .or('estado.eq.pendiente,estado.eq.en_juego')
         .order('fecha_hora', ascending: true);
 
     return List<Map<String, dynamic>>.from(response);
