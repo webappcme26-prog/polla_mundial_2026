@@ -16,6 +16,7 @@ class _AdminPageState extends State<AdminPage> {
   final AdminService _adminService = AdminService();
   final BackupService _backupService = BackupService();
   late Future<List<Map<String, dynamic>>> _matchesFuture;
+  DateTime? _fechaSeleccionada;
 
   @override
   void initState() {
@@ -28,6 +29,27 @@ class _AdminPageState extends State<AdminPage> {
       _matchesFuture = _adminService.getMatches();
     });
   }
+
+  Future<void> _seleccionarFecha() async {
+  final fecha = await showDatePicker(
+    context: context,
+    initialDate: _fechaSeleccionada ?? DateTime.now(),
+    firstDate: DateTime(2025),
+    lastDate: DateTime(2030),
+  );
+
+  if (fecha != null) {
+    setState(() {
+      _fechaSeleccionada = fecha;
+    });
+  }
+}
+
+void _mostrarTodos() {
+  setState(() {
+    _fechaSeleccionada = null;
+  });
+}
 
   Future<void> _generarRespaldoDiario() async {
     try {
@@ -285,13 +307,44 @@ class _AdminPageState extends State<AdminPage> {
             );
           }
 
-          final matches = snapshot.data ?? [];
+        final matches = snapshot.data ?? [];
 
-          if (matches.isEmpty) {
-            return const Center(
-              child: Text('No hay partidos registrados'),
-            );
-          }
+final partidosFiltrados = _fechaSeleccionada == null
+    ? matches
+    : matches.where((match) {
+        final fecha = DateTime.parse(
+          match['fecha_hora'].toString(),
+        ).toLocal();
+
+        return fecha.year == _fechaSeleccionada!.year &&
+            fecha.month == _fechaSeleccionada!.month &&
+            fecha.day == _fechaSeleccionada!.day;
+      }).toList();
+
+if (partidosFiltrados.isEmpty) {
+  return Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Icon(
+          Icons.calendar_month,
+          size: 60,
+          color: Colors.grey,
+        ),
+        const SizedBox(height: 12),
+        const Text(
+          'No hay partidos para esta fecha',
+        ),
+        const SizedBox(height: 12),
+        ElevatedButton.icon(
+          onPressed: _seleccionarFecha,
+          icon: const Icon(Icons.calendar_month),
+          label: const Text('Cambiar fecha'),
+        ),
+      ],
+    ),
+  );
+}
 
           return RefreshIndicator(
             onRefresh: _recargar,
@@ -344,7 +397,36 @@ class _AdminPageState extends State<AdminPage> {
                   ),
                 ),
                 const SizedBox(height: 18),
-                ...matches.map((match) {
+                Card(
+  child: ListTile(
+    leading: const Icon(Icons.calendar_month),
+    title: const Text('Filtrar por fecha'),
+    subtitle: Text(
+      _fechaSeleccionada == null
+          ? 'Todos los partidos'
+          : '${_fechaSeleccionada!.day.toString().padLeft(2, '0')}/'
+              '${_fechaSeleccionada!.month.toString().padLeft(2, '0')}/'
+              '${_fechaSeleccionada!.year}',
+    ),
+    trailing: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (_fechaSeleccionada != null)
+          IconButton(
+            tooltip: 'Mostrar todos',
+            onPressed: _mostrarTodos,
+            icon: const Icon(Icons.clear),
+          ),
+        const Icon(Icons.arrow_drop_down),
+      ],
+    ),
+    onTap: _seleccionarFecha,
+  ),
+),
+
+const SizedBox(height: 12),
+
+...partidosFiltrados.map((match) {
                   final estado = (match['estado'] ?? 'pendiente').toString();
 
                   return Card(
