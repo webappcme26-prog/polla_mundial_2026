@@ -258,8 +258,20 @@ class _AdminPageState extends State<AdminPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Panel administrador'),
-      ),
+  backgroundColor: Colors.white,
+  foregroundColor: const Color(0xFF0B3D91),
+  elevation: 1,
+  title: const Text(
+    'Panel administrador',
+    style: TextStyle(
+      color: Color(0xFF0B3D91),
+      fontWeight: FontWeight.bold,
+    ),
+  ),
+  iconTheme: const IconThemeData(
+    color: Color(0xFF0B3D91),
+  ),
+),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _matchesFuture,
         builder: (context, snapshot) {

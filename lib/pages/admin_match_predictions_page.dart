@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import 'admin_page.dart';
 import '../services/prediction_service.dart';
+import '../services/match_prediction_pdf_service.dart';
 
 class AdminMatchPredictionsPage extends StatefulWidget {
   final int matchId;
@@ -24,6 +25,7 @@ class AdminMatchPredictionsPage extends StatefulWidget {
 class _AdminMatchPredictionsPageState
     extends State<AdminMatchPredictionsPage> {
   final PredictionService _predictionService = PredictionService();
+  final MatchPredictionPdfService _pdfService = MatchPredictionPdfService();
   late Future<List<Map<String, dynamic>>> _predictionsFuture;
 
   @override
@@ -69,8 +71,51 @@ class _AdminMatchPredictionsPageState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pronósticos del partido'),
+  backgroundColor: Colors.white,
+  foregroundColor: const Color(0xFF0B3D91),
+  elevation: 1,
+  title: const Text(
+    'Pronósticos del partido',
+    style: TextStyle(
+      color: Color(0xFF0B3D91),
+      fontWeight: FontWeight.bold,
+    ),
+  ),
+  actions: [
+    IconButton(
+      tooltip: 'Descargar PDF',
+      icon: const Icon(
+        Icons.picture_as_pdf,
+        color: Colors.red,
       ),
+      onPressed: () async {
+        try {
+          await _pdfService.downloadMatchPredictionsPdf(
+            matchId: widget.matchId,
+            equipoLocal: widget.equipoLocal,
+            equipoVisitante: widget.equipoVisitante,
+          );
+
+          if (!mounted) return;
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('PDF generado correctamente'),
+            ),
+          );
+        } catch (e) {
+          if (!mounted) return;
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error al generar PDF: $e'),
+            ),
+          );
+        }
+      },
+    ),
+  ],
+),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _predictionsFuture,
         builder: (context, snapshot) {
